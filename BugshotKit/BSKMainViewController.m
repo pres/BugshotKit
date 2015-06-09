@@ -282,7 +282,7 @@ static UIImage *rotateIfNeeded(UIImage *src);
     UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
     cell.textLabel.textAlignment = NSTextAlignmentCenter;
     cell.textLabel.textColor = BugshotKit.sharedManager.annotationFillColor;
-    cell.textLabel.text = @"Compose Email…";
+    cell.textLabel.text = @"Email verfassen…";
 
     return cell;
 }
