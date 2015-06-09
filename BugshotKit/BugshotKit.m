@@ -9,10 +9,6 @@
 #import "MABGTimer.h"
 @import CoreText;
 
-@interface UIViewController ()
-- (void)attentionClassDumpUser:(id)fp8 yesItsUsAgain:(id)fp12 althoughSwizzlingAndOverridingPrivateMethodsIsFun:(id)fp16 itWasntMuchFunWhenYourAppStoppedWorking:(id)fp20 pleaseRefrainFromDoingSoInTheFutureOkayThanksBye:(id)fp24;
-@end
-
 NSString * const BSKNewLogMessageNotification = @"BSKNewLogMessageNotification";
 
 UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
@@ -146,11 +142,6 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
 - (instancetype)init
 {
     if ( (self = [super init]) ) {
-        if ([self.class isProbablyAppStoreBuild]) {
-            self.isDisabled = YES;
-            NSLog(@"[BugshotKit] App Store build detected. BugshotKit is disabled.");
-            return self;
-        }
         
         self.windowsWithGesturesAttached = [NSMapTable weakToWeakObjectsMapTable];
         
@@ -208,17 +199,6 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     if (! self.window) self.window = UIApplication.sharedApplication.windows.lastObject;
     if (! self.window) [[NSException exceptionWithName:NSGenericException reason:@"BugshotKit cannot find any application windows" userInfo:nil] raise];
     if (! self.window.rootViewController) [[NSException exceptionWithName:NSGenericException reason:@"BugshotKit requires a rootViewController set on the window" userInfo:nil] raise];
-
-    // The purpose of this is to immediately get rejected from App Store submissions in case you accidentally submit an app with BugshotKit.
-    // BugshotKit is only meant to be used during development and beta testing. Do not ship it in App Store builds.
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wundeclared-selector"
-    if ([UIEvent.class instancesRespondToSelector:@selector(_gsEvent)] &&
-        [UIViewController.class instancesRespondToSelector:@selector(attentionClassDumpUser:yesItsUsAgain:althoughSwizzlingAndOverridingPrivateMethodsIsFun:itWasntMuchFunWhenYourAppStoppedWorking:pleaseRefrainFromDoingSoInTheFutureOkayThanksBye:)]) {
-        // I can't believe I actually had a reason to call this method.
-        [self.window.rootViewController attentionClassDumpUser:nil yesItsUsAgain:nil althoughSwizzlingAndOverridingPrivateMethodsIsFun:nil itWasntMuchFunWhenYourAppStoppedWorking:nil pleaseRefrainFromDoingSoInTheFutureOkayThanksBye:nil];
-    }
-#pragma clang diagnostic pop
 }
 
 - (void)newWindowDidBecomeVisible:(NSNotification *)n
@@ -612,38 +592,6 @@ asl_object_t SystemSafeASLNext(asl_object_t r) {
             [attrString drawWithRect:stringRect options:options context:stringDrawingContext];
         }));
     }];
-}
-
-#pragma mark - App Store build detection
-
-+ (BOOL)isProbablyAppStoreBuild
-{
-#if TARGET_IPHONE_SIMULATOR
-    return NO;
-#else
-    // Adapted from https://github.com/blindsightcorp/BSMobileProvision
-
-    NSString *binaryMobileProvision = [NSString stringWithContentsOfFile:[NSBundle.mainBundle pathForResource:@"embedded" ofType:@"mobileprovision"] encoding:NSISOLatin1StringEncoding error:NULL];
-    if (! binaryMobileProvision) return YES; // no provision
-
-    NSScanner *scanner = [NSScanner scannerWithString:binaryMobileProvision];
-    NSString *plistString;
-    if (! [scanner scanUpToString:@"<plist" intoString:nil] || ! [scanner scanUpToString:@"</plist>" intoString:&plistString]) return YES; // no XML plist found in provision
-    plistString = [plistString stringByAppendingString:@"</plist>"];
-
-    NSData *plistdata_latin1 = [plistString dataUsingEncoding:NSISOLatin1StringEncoding];
-    NSError *error = nil;
-    NSDictionary *mobileProvision = [NSPropertyListSerialization propertyListWithData:plistdata_latin1 options:NSPropertyListImmutable format:NULL error:&error];
-    if (error) return YES; // unknown plist format
-
-    if (! mobileProvision || ! mobileProvision.count) return YES; // no entitlements
-    
-    if (mobileProvision[@"ProvisionsAllDevices"]) return NO; // enterprise provisioning
-    
-    if (mobileProvision[@"ProvisionedDevices"] && ((NSDictionary *)mobileProvision[@"ProvisionedDevices"]).count) return NO; // development or ad-hoc
-
-    return YES; // expected development/enterprise/ad-hoc entitlements not found
-#endif
 }
 
 
