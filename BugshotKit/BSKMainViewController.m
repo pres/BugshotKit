@@ -77,9 +77,6 @@ static UIImage *rotateIfNeeded(UIImage *src);
     UIView *screenshotContainer = [UIView new];
     screenshotContainer.translatesAutoresizingMaskIntoConstraints = NO;
     
-    UIView *consoleContainer = [UIView new];
-    consoleContainer.translatesAutoresizingMaskIntoConstraints = NO;
-    
     self.screenshotLabel = [UILabel new];
     self.screenshotLabel.text = @"SCREENSHOT";
     self.screenshotLabel.font = [UIFont preferredFontForTextStyle:UIFontTextStyleCaption2];
@@ -87,14 +84,6 @@ static UIImage *rotateIfNeeded(UIImage *src);
     self.screenshotLabel.textAlignment = NSTextAlignmentCenter;
     self.screenshotLabel.translatesAutoresizingMaskIntoConstraints = NO;
     [screenshotContainer addSubview:self.screenshotLabel];
-    
-    self.consoleLabel = [UILabel new];
-    self.consoleLabel.text = @"LOG";
-    self.consoleLabel.font = self.screenshotLabel.font;
-    self.consoleLabel.textAlignment = self.screenshotLabel.textAlignment;
-    self.consoleLabel.textColor = self.screenshotLabel.textColor;
-    self.consoleLabel.translatesAutoresizingMaskIntoConstraints = NO;
-    [consoleContainer addSubview:self.consoleLabel];
     
     CGFloat toggleWidth = UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone && UIInterfaceOrientationIsLandscape(self.interfaceOrientation) ? 44 : 74;
     
@@ -104,13 +93,6 @@ static UIImage *rotateIfNeeded(UIImage *src);
     self.includeScreenshotToggle.translatesAutoresizingMaskIntoConstraints = NO;
     self.includeScreenshotToggle.accessibilityLabel = @"Include screenshot";
     [screenshotContainer addSubview:self.includeScreenshotToggle];
-
-    self.includeLogToggle = [[BSKToggleButton alloc] initWithFrame:CGRectMake(0, 0, toggleWidth, toggleWidth)];
-    self.includeLogToggle.on = YES;
-    [self.includeLogToggle addTarget:self action:@selector(includeLogToggled:) forControlEvents:UIControlEventValueChanged];
-    self.includeLogToggle.translatesAutoresizingMaskIntoConstraints = NO;
-    self.includeLogToggle.accessibilityLabel = @"Include log";
-    [consoleContainer addSubview:self.includeLogToggle];
     
     self.screenshotView = [UIButton buttonWithType:UIButtonTypeCustom];
     [self.screenshotView addTarget:self action:@selector(openScreenshotEditor:) forControlEvents:UIControlEventTouchUpInside];
@@ -120,35 +102,11 @@ static UIImage *rotateIfNeeded(UIImage *src);
     self.screenshotView.layer.borderWidth = 1.0f;
     self.screenshotView.accessibilityLabel = @"Annotate screenshot";
     [screenshotContainer addSubview:self.screenshotView];
-
-    self.consoleView = [UIButton buttonWithType:UIButtonTypeCustom];
-    [self.consoleView addTarget:self action:@selector(openConsoleViewer:) forControlEvents:UIControlEventTouchUpInside];
-    self.consoleView.translatesAutoresizingMaskIntoConstraints = NO;
-    self.consoleView.layer.borderColor = BugshotKit.sharedManager.annotationFillColor.CGColor;
-    self.consoleView.layer.borderWidth = 1.0f;
-    self.consoleView.accessibilityLabel = @"View log";
-    self.consoleView.backgroundColor = UIColor.whiteColor;
-    [consoleContainer addSubview:self.consoleView];
     
     self.screenshotAccessoryView = [[UIImageView alloc] initWithImage:chevronImage];
     self.screenshotAccessoryView.translatesAutoresizingMaskIntoConstraints = NO;
     self.screenshotAccessoryView.isAccessibilityElement = NO;
     [screenshotContainer addSubview:self.screenshotAccessoryView];
-
-    self.consoleAccessoryView = [[UIImageView alloc] initWithImage:chevronImage];
-    self.consoleAccessoryView.translatesAutoresizingMaskIntoConstraints = NO;
-    self.consoleAccessoryView.isAccessibilityElement = NO;
-    [consoleContainer addSubview:self.consoleAccessoryView];
-
-    // Make both images match the screenshot's aspect ratio (and lock its ratio)
-    CGSize imageSize = screenshotImage.size;
-    CGFloat imageAspect = imageSize.width / imageSize.height;
-    [screenshotContainer addConstraint:[NSLayoutConstraint
-        constraintWithItem:self.screenshotView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:self.screenshotView attribute:NSLayoutAttributeHeight multiplier:imageAspect constant:0
-    ]];
-    [consoleContainer addConstraint:[NSLayoutConstraint
-        constraintWithItem:self.consoleView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:self.consoleView attribute:NSLayoutAttributeHeight multiplier:imageAspect constant:0
-    ]];
     
     void (^layoutScreenshotUnit)(UIView *container, NSDictionary *views) = ^(UIView *container, NSDictionary *views){
         NSDictionary *metrics = @{
@@ -187,47 +145,19 @@ static UIImage *rotateIfNeeded(UIImage *src);
         @"toggle" : self.includeScreenshotToggle
     });
 
-    layoutScreenshotUnit(consoleContainer, @{
-        @"label" : self.consoleLabel,
-        @"image" : self.consoleView,
-        @"accessory" : self.consoleAccessoryView,
-        @"toggle" : self.includeLogToggle
-    });
-
     [headerView addSubview:screenshotContainer];
-    [headerView addSubview:consoleContainer];
-    
-    NSDictionary *views = NSDictionaryOfVariableBindings(screenshotContainer, consoleContainer);
-    [headerView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[screenshotContainer]|" options:0 metrics:nil views:views]];
-    [headerView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[consoleContainer]|" options:0 metrics:nil views:views]];
     
     [headerView addConstraint:[NSLayoutConstraint
         constraintWithItem:screenshotContainer attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationLessThanOrEqual toItem:headerView attribute:NSLayoutAttributeCenterX multiplier:1 constant:0
     ]];
-    [headerView addConstraint:[NSLayoutConstraint
-        constraintWithItem:consoleContainer attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationLessThanOrEqual toItem:headerView attribute:NSLayoutAttributeCenterX multiplier:1 constant:0
-    ]];
-
-    [headerView addConstraint:[NSLayoutConstraint
-        constraintWithItem:screenshotContainer attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:consoleContainer attribute:NSLayoutAttributeWidth multiplier:1 constant:0
-    ]];
 
     [headerView sizeToFit];
     self.tableView.tableHeaderView = headerView;
-
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [self updateLiveLog:nil];
-    });
 }
 
 - (void)openScreenshotEditor:(id)sender
 {
     [self.navigationController pushViewController:[[BSKScreenshotViewController alloc] initWithImage:BugshotKit.sharedManager.snapshotImage annotations:BugshotKit.sharedManager.annotations] animated:YES];
-}
-
-- (void)openConsoleViewer:(id)sender
-{
-    [self.navigationController pushViewController:[[BSKLogViewController alloc] init] animated:YES];
 }
 
 - (void)includeScreenshotToggled:(id)sender
@@ -238,17 +168,6 @@ static UIImage *rotateIfNeeded(UIImage *src);
     } else {
         self.screenshotLabel.textColor = BugshotKit.sharedManager.toggleOffColor;
         self.screenshotView.layer.borderColor = BugshotKit.sharedManager.toggleOffColor.CGColor;
-    }
-}
-
-- (void)includeLogToggled:(id)sender
-{
-    if (self.includeLogToggle.on) {
-        self.consoleLabel.textColor = BugshotKit.sharedManager.annotationFillColor;
-        self.consoleView.layer.borderColor = BugshotKit.sharedManager.annotationFillColor.CGColor;
-    } else {
-        self.consoleLabel.textColor = BugshotKit.sharedManager.toggleOffColor;
-        self.consoleView.layer.borderColor = BugshotKit.sharedManager.toggleOffColor.CGColor;
     }
 }
 
@@ -310,8 +229,6 @@ static UIImage *rotateIfNeeded(UIImage *src);
         [(NSMutableDictionary *)userInfo addEntriesFromDictionary:extraUserInfo];
     };
     
-    NSData *userInfoJSON = [NSJSONSerialization dataWithJSONObject:userInfo options:NSJSONWritingPrettyPrinted error:NULL];
-    
     MFMailComposeViewController *mf = [MFMailComposeViewController canSendMail] ? [[MFMailComposeViewController alloc] init] : nil;
     if (! mf) {
         NSString *msg = [NSString stringWithFormat:@"Mail is not configured on your %@.", UIDevice.currentDevice.localizedModel];
@@ -324,8 +241,6 @@ static UIImage *rotateIfNeeded(UIImage *src);
     [mf setMessageBody:BugshotKit.sharedManager.emailBodyBlock ? BugshotKit.sharedManager.emailBodyBlock(userInfo) : nil isHTML:NO];
 
     if (screenshot) [mf addAttachmentData:UIImagePNGRepresentation(rotateIfNeeded(screenshot)) mimeType:@"image/png" fileName:@"screenshot.png"];
-    if (log) [mf addAttachmentData:[log dataUsingEncoding:NSUTF8StringEncoding] mimeType:@"text/plain" fileName:@"log.txt"];
-    if (userInfoJSON) [mf addAttachmentData:userInfoJSON mimeType:@"application/json" fileName:@"info.json"];
     if(BugshotKit.sharedManager.mailComposeCustomizeBlock) BugshotKit.sharedManager.mailComposeCustomizeBlock(mf);
     
     mf.mailComposeDelegate = self;
