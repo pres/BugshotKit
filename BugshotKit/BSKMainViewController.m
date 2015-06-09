@@ -156,6 +156,10 @@ static UIImage *rotateIfNeeded(UIImage *src);
 
     [headerView addSubview:screenshotContainer];
     
+    NSDictionary *views = NSDictionaryOfVariableBindings(screenshotContainer);
+    [headerView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[screenshotContainer]|" options:0 metrics:nil views:views]];
+
+    
     [headerView addConstraint:[NSLayoutConstraint
         constraintWithItem:screenshotContainer attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationLessThanOrEqual toItem:headerView attribute:NSLayoutAttributeCenterX multiplier:1 constant:0
     ]];
@@ -163,7 +167,6 @@ static UIImage *rotateIfNeeded(UIImage *src);
     [headerView addConstraint:[NSLayoutConstraint
                                constraintWithItem:screenshotContainer attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationLessThanOrEqual toItem:headerView attribute:NSLayoutAttributeCenterX multiplier:1 constant:0
                                ]];
-
 
     [headerView sizeToFit];
     self.tableView.tableHeaderView = headerView;
