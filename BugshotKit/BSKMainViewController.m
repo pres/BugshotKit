@@ -108,6 +108,15 @@ static UIImage *rotateIfNeeded(UIImage *src);
     self.screenshotAccessoryView.isAccessibilityElement = NO;
     [screenshotContainer addSubview:self.screenshotAccessoryView];
     
+    // Make both images match the screenshot's aspect ratio (and lock its ratio)
+    CGSize imageSize = screenshotImage.size;
+    CGFloat imageAspect = imageSize.width / imageSize.height;
+
+    [screenshotContainer addConstraint:[NSLayoutConstraint
+                                        constraintWithItem:self.screenshotView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:self.screenshotView attribute:NSLayoutAttributeHeight multiplier:imageAspect constant:0
+                                        ]];
+
+    
     void (^layoutScreenshotUnit)(UIView *container, NSDictionary *views) = ^(UIView *container, NSDictionary *views){
         NSDictionary *metrics = @{
             @"aw" : @(chevronSize.width), @"ah" : @(chevronSize.height), @"apad" : @(chevronSize.width + 5.0f),
@@ -121,7 +130,7 @@ static UIImage *rotateIfNeeded(UIImage *src);
         [container addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"|[label]|" options:0 metrics:nil views:views]];
         [container addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"|-apad-[image]-apad-|" options:0 metrics:metrics views:views]];
         [container addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[toggle]-15-|" options:0 metrics:nil views:views]];
-
+        
         // horizontally center toggle
         [container addConstraint:[NSLayoutConstraint
             constraintWithItem:views[@"toggle"] attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:container attribute:NSLayoutAttributeCenterX multiplier:1 constant:0
@@ -150,6 +159,11 @@ static UIImage *rotateIfNeeded(UIImage *src);
     [headerView addConstraint:[NSLayoutConstraint
         constraintWithItem:screenshotContainer attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationLessThanOrEqual toItem:headerView attribute:NSLayoutAttributeCenterX multiplier:1 constant:0
     ]];
+    
+    [headerView addConstraint:[NSLayoutConstraint
+                               constraintWithItem:screenshotContainer attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationLessThanOrEqual toItem:headerView attribute:NSLayoutAttributeCenterX multiplier:1 constant:0
+                               ]];
+
 
     [headerView sizeToFit];
     self.tableView.tableHeaderView = headerView;
