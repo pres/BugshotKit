@@ -38,7 +38,6 @@ static UIImage *rotateIfNeeded(UIImage *src);
         self.title = @"Feedback";
         self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(cancelButtonTapped:)];
         self.navigationItem.backBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"" style:UIBarButtonItemStylePlain target:nil action:nil];
-        self.navigationController.navigationBar.translucent = YES;
     }
     return self;
 }
@@ -171,6 +170,11 @@ static UIImage *rotateIfNeeded(UIImage *src);
 
     [headerView sizeToFit];
     self.tableView.tableHeaderView = headerView;
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    self.navigationController.navigationBar.translucent = YES;
 }
 
 - (void)openScreenshotEditor:(id)sender
