@@ -35,9 +35,10 @@ static UIImage *rotateIfNeeded(UIImage *src);
         [BugshotKit.sharedManager addObserver:self forKeyPath:@"annotatedImage" options:0 context:NULL];
         [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(updateLiveLog:) name:BSKNewLogMessageNotification object:nil];
 
-        self.title = @"Bugshot";
+        self.title = @"Feedback";
         self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(cancelButtonTapped:)];
         self.navigationItem.backBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"" style:UIBarButtonItemStylePlain target:nil action:nil];
+        self.navigationController.navigationBar.translucent = YES;
     }
     return self;
 }
@@ -282,7 +283,7 @@ static UIImage *rotateIfNeeded(UIImage *src);
     UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
     cell.textLabel.textAlignment = NSTextAlignmentCenter;
     cell.textLabel.textColor = BugshotKit.sharedManager.annotationFillColor;
-    cell.textLabel.text = @"Email verfassen…";
+    cell.textLabel.text = @"Email verfassen";
 
     return cell;
 }
