@@ -369,7 +369,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
 
     self.isShowing = YES;
 
-    UIGraphicsBeginImageContextWithOptions(self.window.bounds.size, NO, UIScreen.mainScreen.scale);
+    UIGraphicsBeginImageContextWithOptions(self.window.bounds.size, NO, 1);
     
     NSMutableSet *drawnWindows = [NSMutableSet set];
     for (UIWindow *window in UIApplication.sharedApplication.windows) {
@@ -389,7 +389,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     UIGraphicsEndImageContext();
 
     if ([UIDevice currentDevice].systemVersion.floatValue < 8.0f && interfaceOrientation != UIInterfaceOrientationPortrait) {
-        self.snapshotImage = [[UIImage alloc] initWithCGImage:self.snapshotImage.CGImage scale:UIScreen.mainScreen.scale orientation:(
+        self.snapshotImage = [[UIImage alloc] initWithCGImage:self.snapshotImage.CGImage scale:1 orientation:(
             interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown ? UIImageOrientationDown : (
                 interfaceOrientation == UIInterfaceOrientationLandscapeLeft ? UIImageOrientationRight : UIImageOrientationLeft
             )
