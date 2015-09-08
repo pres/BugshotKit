@@ -141,7 +141,7 @@
 {
     self.gridOverlay.hidden = YES;
 
-    UIGraphicsBeginImageContextWithOptions(self.view.bounds.size, YES, UIScreen.mainScreen.scale);
+    UIGraphicsBeginImageContextWithOptions(self.view.bounds.size, YES, 1);
     // [self.view drawViewHierarchyInRect:self.view.bounds afterScreenUpdates:YES]; // doesn't work to hide the overlay; I guess I need renderInContext:. Ugh.
     [self.view.layer renderInContext:UIGraphicsGetCurrentContext()];
     UIImage *annotatedImage = UIGraphicsGetImageFromCurrentImageContext();
